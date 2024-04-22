@@ -21,8 +21,8 @@ def collect_samples(base_dir, task, question_template, label_mapping):
                 if label in label_mapping:
                     question = question_template
                     response = f"Driver is {label_mapping[label]}."
-                    image_path = os.path.relpath(os.path.join(root, file), start=base_dir)
-                    sample = generate_sample(image_path, task, question, response)
+                    full_image_path = os.path.join(root, file)
+                    sample = generate_sample(full_image_path, task, question, response)
                     samples.append(sample)
     return samples
 
@@ -36,7 +36,9 @@ def main():
     drowsiness_question = "This image captures a crucial moment in a driver's journey. Your task is to observe the driver's posture, facial expression, and overall appearance carefully."
 
     distraction_labels = {
-        "0": "Normal Driving", "1": "Drinking", "2": "Phoning Left", # Add all mappings
+        "0": "Normal Driving", "1": "Drinking", "2": "Phoning Left", "3": "Phoning Right",
+        "4": "Texting Left", "5": "Texting Right", "6": "Touching Hairs & Makeup",
+        "7": "Adjusting Glasses", "8": "Reaching Behind", "9": "Dropping"
     }
     emotion_labels = {
         "AN": "Angry", "DI": "Disgust", "FE": "Fear", "HA": "Happy", "SA": "Sad", "SU": "Surprise"
@@ -50,7 +52,7 @@ def main():
     samples.extend(collect_samples(emotion_dir, "emotion", emotion_question, emotion_labels))
     samples.extend(collect_samples(drowsiness_dir, "drowsiness", drowsiness_question, drowsiness_labels))
 
-    output_path = "/home/users/ntu/chih0001/scratch/VLM/sglang/benchmark/llava_bench/train/lora.json"
+    output_path = "/home/users/ntu/chih0001/scratch/VLM/LLaVA/train/lora.json"
     with open(output_path, 'w') as f:
         json.dump(samples, f, indent=4)
 
