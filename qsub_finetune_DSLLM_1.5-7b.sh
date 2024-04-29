@@ -38,6 +38,16 @@ cd /home/users/ntu/chih0001/scratch/VLM/LLaVA
 module load craype-accel-nvidia80
 
 # Run deepspeed training command directly
+# Always keep the global batch size the same: per_device_train_batch_size x gradient_accumulation_steps x num_gpus.
+# For LoRA is per_device_train_batch_size x gradient_accumulation_steps x num_gpus = 128.
+
+# GlobalBatchsize = 128 = per_device_train_batch_size x gradient_accumulation_steps x num_gpus
+# acc step: 梯度累积，应该影响比较小。所以考虑到显存可能直接调这个是比较稳妥的方式。
+# 2GPUs: 2 x 64 = 2 x 64 x 1 = 2 x 32 x 2 = 2 x 36 x 4
+# 3GPUs: 3 x 44 = 3 x 44 x 1 = 3 x 22 x 2 = 132 （128不能整除3，所以采用逼近的方式，用132）
+# 4GPUs: 4 x 32 = 4 x 32 x 1 = 4 x 16 x 2
+# 2x32x2(finetune-failed)
+# 2x16x4
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path /home/users/ntu/chih0001/scratch/model/llava-v1.5-7b \
@@ -56,7 +66,7 @@ deepspeed llava/train/train_mem.py \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 1 \
+    --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 50000 \
